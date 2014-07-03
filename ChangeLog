@@ -1,0 +1,8 @@
+2004-01-27	Mohammad DAMT  <mdamt@bisnisweb.com>
+	
+	* ChangeLog started
+	* removed --vmailmgr option. We need to patch vmailmgr to work with gadoyanspam
+	* added --force-single to use single database for all virtual accounts
+	* added --quarantine and --no-quarantine options
+	* updated README
+	* version 0.2

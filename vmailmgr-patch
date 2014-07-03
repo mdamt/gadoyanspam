@@ -1,0 +1,14 @@
+diff -ur vmailmgr-0.96.9_/commands/vdeliver.cc vmailmgr-0.96.9/commands/vdeliver.cc
+--- vmailmgr-0.96.9_/commands/vdeliver.cc       2000-08-23 00:34:54.000000000 +0700
++++ vmailmgr-0.96.9/commands/vdeliver.cc        2004-01-23 22:52:26.000000000 +0700
+@@ -325,7 +325,9 @@
+   bool enabled = vpw->is_mailbox_enabled && !!vpw->mailbox;
+  
+   int r = execute("vdeliver-predeliver");
+-  if(r)
++  if(r == 90 || r == 99) {
++         exit (99);
++  } else if (r > 0)
+     exit_msg("Execution of vdeliver-predeliver failed", r);
+  
+   if(enabled) {

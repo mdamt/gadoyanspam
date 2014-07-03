@@ -1,29 +1,40 @@
-gadoyanspam - a dspam agent for qmail 
-version 0.1 - 20040112 GPL
-Mohammad DAMT [mdamt at bisnisweb dot com] 
+gadoyanspam - a spam killer for qmail
+version 0.2 "Re re re re" - 20040127 GPL
+Mohammad DAMT <mdamt@bisnisweb.com>
 (c) 2004, PT Cakram Datalingga Duaribu (http://www.cdl2000.com)
 
-This is gadoyanspam, a dspam agent for qmail.
+This is gadoyanspam, a spam killer for qmail.
 USE AT YOUR OWN RISK. NO GUARANTEE AT ALL.
 
 WHAT IS gadoyanspam
-gadoyanspam is intended to be a dspam agent. It can process a message, 
+gadoyanspam is a spam killer for qmail. It can process a message, 
 learn a spam message, and relearn a message incorrectly marked as a spam.
-gadoyanspam can be considered as an example of using libdspam API.
-This software is sponsored and used by Bisnisweb.NET, Linux ASPX Web Hosting.
+gadoyanspam uses and relies on DSPAM[1] library as the anti spam engine.
+This software is sponsored and used by Bisnisweb.NET[2], Linux ASP.Net Web Hosting.
 
 gadoyanspam is a word come from Betawi language, used in Jakarta, Indonesia.
 (ka)ga = (I) don't doyan = like gadoyanspam = I don't like spam
 
 The web site is http://oss.mdamt.net/gadoyanspam/
 No bugzilla, just report your bugs (or success) to 
-[gadoyanspam at mdamt dot net]
+gadoyanspam@mdamt.net
 
 This software is known to work in Linux Mandrake 9.2. If you
 have gadoyanspam works in another systems, please let me know.
 
+WHAT IS DSPAM
+You can find more information about DSPAM in it's web page (url is in the end of
+this document). DSPAM's performance and accuracy is amazing. Every day
+I used to have more than 50 spams, and now 0.
+
+WHY DO I HAVE TO USE gadoyanspam IF I CAN USE DSPAM?
+Good question. I use qmail. DSPAM doesn't support qmail out of the box.
+And I don't like the solution to use DSPAM with qmail mentioned in DSPAM's 
+website. So I need to use gadoyanspam. If you dont use qmail then dont use gadoyanspam. 
+Hey this is _the_ README document! It is not supposed to be an FAQ!
+
 HOW TO USE
-* Install dspam[1]. I use version 2.8.1
+* Install DSPAM. I use version 2.8.1
   We dont use the "dspam" program that come with the package, 
   but we need the other executables and libdspam
   from the package. Dont forget to setup the USERDIR.
@@ -33,7 +44,7 @@ HOW TO USE
 
   # gcc -o gadoyanspam gadoyanspam.c -ldspam -I/path/to/dspam-source-code
   
-  If you install dspam not in your library path, you can try:
+  If your dspam installation is not in your library path, you can try:
 
   # gcc -o gadoyanspam gadoyanspam.c -ldspam -I/path/to/dspam-source-code\
     -L/path/to/dspam/lib
@@ -53,50 +64,104 @@ HOW TO USE
   - false positives to: user-notspam@domain.com
 
   dont forget to create email user-spam@domain.com and user-notspam@domain.com
-  these address dont have to have a mailbox, /dev/null is ok.
+  these address dont have to have a mailbox, /dev/null is ok. But if you are
+  using quarantine feature, at least user-spam@domain.com needs to have a maildir
+  installed.
 
   read documentation about arguments below to change the address
 
 * maintain your spam database according to dspam documentation
 
 SOME ARGUMENTS
-* --deliver-spam:    Force gadoyanspam to pass the spam message through
+* --deliver-spam:    Force gadoyanspam to pass the spam message through.
                      However, the spam tokens are learned.
 * --spam-tag:        Followed by a tag name, indicate what tag appended
                      to the spam box email address. For example, if you have
                      bush-spam@miserable-failure.com as your spam box,
                      then the tag is -spam
+					 default: -spam
 * --innocent-tag:    Followed by a tag name, indicate what tag appended
                      to the false positive email address. For example,
                      if you have bush-guilty@miserable-failure.com as your
                      false positive email address, then the tag is
                      -guilty
-* --vmailmgr:        Indicated that you call gadoyanspam from vdeliver.
+					 default: -notspam
+* --force-single:    Force gadoyanspan to use a single database for all
+                     email accounts in this domain. Useful if you want to 
+					 share a single database across users. Please read 
+					 the warning on DSPAM Documentation about groups.
+					 In this mode, spam and innocent tags should not
+					 prefixed with dash.
+					 default: no
+* --quarantine:      It specifies where to save suspected spam message.
+                     It must be a maildir. gadoyanspam will create the directory
+					 if the directory doesn't exists. The directory specified here
+					 is relative to $HOME and will be appended with --spam-tag value
+					 default: $EXT or --spam-tag value (if --force single is active)
+* --no-quarantine:   It specifies whether to save suspected spam message or not.
+                     If this option is set, --quarantine will be ignored
+                     default: no
 
-What is false positive and spam box? read the dspam documentation.
+WHAT IS $EXT?
+Read qmail-command.8 manual page
+
+FALSE POSITIVES AND SPAM BOX
+What are false positives and spam box? read the dspam documentation.
 In short, a spam box is an address that you forward all of your spams,
 and false positive box is an address that you forward all of your
 innocent messages which is being incorrectly detected as spams.
 
-RETURN VALUES:
-* dotqmail-mode: 0 success, 99 spam (0 in --deliver-spam mode), 111 deferral
-* vmailmgr-mode: 0 success, 90 spam (0 in --deliver-spam mode), 111 deferral
+WHAT HAPPEN IF A SPAM MESSAGE IS CATCHED?
+If you activate quarantine feature (which is activated by default),
+the spam messages will be saved in $HOME/quarantine-value-spamtag-value.
+For example, if:
 
-KNOWN BUGS:
-* spam and innocent tags only work if they are appended to the email address
+--innocent-tag = -impossible
+--spam-tag = -guilty
+--quarantine = users/$EXT
+$HOME = /home/bush
+any spam messages catched for email bush@miserable-failure.com
+will be saved in /home/bush/users/bush-guilty
+
+If any of the saved messages are not spams, you can forward them to address
+bush-impossible@miserable-failure.com.
+
+any spam messages catched for email bush-is@miserable-failure.com
+will be saved in /home/bush/users/bush-is-guilty
+
+RETURN VALUES:
+* 0 success, 99 spam (0 in --deliver-spam mode), 111 deferral
+
+CAVEAT:
+* spam and innocent tags will work only if they are appended to the email address.
   user-spam-john@domain.com and user-notspam-john@domain.com will not work
   if the spam and innocent tags are -spam and -notspam respectively.
-* gadoyanspam doesnt know about groups in dspam USERDIR
+  Tags also will not work if spam tag is a substring of innocent tag.
+  E.g. this will work: -spam (spam) and -notspam (innocent)
+       this won't work: -isjunk (spam) and -junk (innocent)
+
+KNOWN BUGS:
+* gadoyanspam doesn't know about groups in dspam USERDIR. However, gadoyanspam
+  have similar feature using --force-single flag.
+
+TO ALL NIGERIAN AND LOTTO SCAMMERS, SEX SHOPS, PORN SITES, DRUG STORES, etc:
+Please send your proposals and offerings to spam@mdamt.net.
+And please consider to use gadoyanspam in your mail servers,
+|t w|(( S+T+O+P [S/P/A/M] 4s s.e.e.n 0n CnN,f0x,C3S, e(v)en 0pR4h!!
 
 +---notes for vmailmgr users:-------------------------------------------
-|* Install vmailmgr[2]. I use version 0.96.9
+|* Install vmailmgr[3]. I use version 0.96.9
+|  patch it using vmailmgr-patch provided by gadoyanspam
 |
 |* add these lines below to /etc/vmailmgr/vdeliver-predeliver
-|  if you dont have the file, create it
+|  if you dont have the file, create it. Note: gadoyanspam
+|  will save suspected message in $HOME/users/$EXT directory.
+|  Modify the --quarantine to fits your vmailmgr setting.
 |
 | [---START CUT HERE---]
 | #!/bin/bash
-| /path/to/gadoyanspam --vmailmgr --innocent-tag=-notspam --spam-tag=-spam
+| /path/to/gadoyanspam --innocent-tag=-notspam --spam-tag=-spam\
+| --quarantine=users/$EXT
 |
 | ## uncomment these lines below if you have vcheckquota
 | #ret=$?
@@ -113,4 +178,5 @@ KNOWN BUGS:
 +-----------------------------------------------------------------------
 
 [1] http://www.nuclearelephant.com/projects/dspam/
-[2] http://www.vmailmgr.org/
+[2] http://www.bisnisweb.net/
+[3] http://www.vmailmgr.org/
