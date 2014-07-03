@@ -1,0 +1,116 @@
+gadoyanspam - a dspam agent for qmail 
+version 0.1 - 20040112 GPL
+Mohammad DAMT [mdamt at bisnisweb dot com] 
+(c) 2004, PT Cakram Datalingga Duaribu (http://www.cdl2000.com)
+
+This is gadoyanspam, a dspam agent for qmail.
+USE AT YOUR OWN RISK. NO GUARANTEE AT ALL.
+
+WHAT IS gadoyanspam
+gadoyanspam is intended to be a dspam agent. It can process a message, 
+learn a spam message, and relearn a message incorrectly marked as a spam.
+gadoyanspam can be considered as an example of using libdspam API.
+This software is sponsored and used by Bisnisweb.NET, Linux ASPX Web Hosting.
+
+gadoyanspam is a word come from Betawi language, used in Jakarta, Indonesia.
+(ka)ga = (I) don't doyan = like gadoyanspam = I don't like spam
+
+The web site is http://oss.mdamt.net/gadoyanspam/
+No bugzilla, just report your bugs (or success) to 
+[gadoyanspam at mdamt dot net]
+
+This software is known to work in Linux Mandrake 9.2. If you
+have gadoyanspam works in another systems, please let me know.
+
+HOW TO USE
+* Install dspam[1]. I use version 2.8.1
+  We dont use the "dspam" program that come with the package, 
+  but we need the other executables and libdspam
+  from the package. Dont forget to setup the USERDIR.
+  READ the documentation
+
+* Compile gadoyanspam:
+
+  # gcc -o gadoyanspam gadoyanspam.c -ldspam -I/path/to/dspam-source-code
+  
+  If you install dspam not in your library path, you can try:
+
+  # gcc -o gadoyanspam gadoyanspam.c -ldspam -I/path/to/dspam-source-code\
+    -L/path/to/dspam/lib
+
+* Install it somewhere in your PATH
+
+  # cp gadoyanspam /usr/bin
+
+* Put it in your .qmail file, like:
+
+  |/path/to/gadoyanspam 
+  ./Maildir/username
+
+* by default you can send:
+  - normal messages to:  user@domain.com
+  - spam messages to: user-spam@domain.com
+  - false positives to: user-notspam@domain.com
+
+  dont forget to create email user-spam@domain.com and user-notspam@domain.com
+  these address dont have to have a mailbox, /dev/null is ok.
+
+  read documentation about arguments below to change the address
+
+* maintain your spam database according to dspam documentation
+
+SOME ARGUMENTS
+* --deliver-spam:    Force gadoyanspam to pass the spam message through
+                     However, the spam tokens are learned.
+* --spam-tag:        Followed by a tag name, indicate what tag appended
+                     to the spam box email address. For example, if you have
+                     bush-spam@miserable-failure.com as your spam box,
+                     then the tag is -spam
+* --innocent-tag:    Followed by a tag name, indicate what tag appended
+                     to the false positive email address. For example,
+                     if you have bush-guilty@miserable-failure.com as your
+                     false positive email address, then the tag is
+                     -guilty
+* --vmailmgr:        Indicated that you call gadoyanspam from vdeliver.
+
+What is false positive and spam box? read the dspam documentation.
+In short, a spam box is an address that you forward all of your spams,
+and false positive box is an address that you forward all of your
+innocent messages which is being incorrectly detected as spams.
+
+RETURN VALUES:
+* dotqmail-mode: 0 success, 99 spam (0 in --deliver-spam mode), 111 deferral
+* vmailmgr-mode: 0 success, 90 spam (0 in --deliver-spam mode), 111 deferral
+
+KNOWN BUGS:
+* spam and innocent tags only work if they are appended to the email address
+  user-spam-john@domain.com and user-notspam-john@domain.com will not work
+  if the spam and innocent tags are -spam and -notspam respectively.
+* gadoyanspam doesnt know about groups in dspam USERDIR
+
++---notes for vmailmgr users:-------------------------------------------
+|* Install vmailmgr[2]. I use version 0.96.9
+|
+|* add these lines below to /etc/vmailmgr/vdeliver-predeliver
+|  if you dont have the file, create it
+|
+| [---START CUT HERE---]
+| #!/bin/bash
+| /path/to/gadoyanspam --vmailmgr --innocent-tag=-notspam --spam-tag=-spam
+|
+| ## uncomment these lines below if you have vcheckquota
+| #ret=$?
+| #if [ $ret -ne 0 ]; then
+| #	exit $ret
+| #fi
+| #
+| #/usr/local/bin/vcheckquota
+| [---END TO HERE---]
+|
+|* dont forget to mark /etc/vmailmgr/vdeliver-predeliver as executable
+|
+|  # chmod +x /etc/vmailmgr/vdeliver-predeliver
++-----------------------------------------------------------------------
+
+[1] http://www.nuclearelephant.com/projects/dspam/
+[2] http://www.vmailmgr.org/
